@@ -1,18 +1,19 @@
 FROM php:8.2-apache
 
-# Enable mysqli extension
-RUN docker-php-ext-install mysqli
+# Install PostgreSQL PDO driver for Supabase
+RUN apt-get update && apt-get install -y libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Copy all project files to Apache web root
+# Copy all project files
 COPY . /var/www/html/
 
-# Rename 07_index.php to index.php as the main entry point
+# Set index
 RUN cp /var/www/html/07_index.php /var/www/html/index.php
 
-# Set correct permissions
+# Permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
