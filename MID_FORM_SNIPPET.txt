@@ -1,0 +1,13 @@
+<!-- ══ MID-PAGE FORM ══ -->
+<div class="mid-form-section">
+  <h2>Don't Wait — Get Your Offer Today</h2>
+  <p>Fill out the form and we'll contact you within 24 hours.</p>
+  <div class="mid-form">
+    <input id="mf-address" placeholder="Property Address *" type="text" autocomplete="street-address">
+    <input id="mf-name"    placeholder="Full Name *"        type="text" autocomplete="name">
+    <input id="mf-phone"   placeholder="Phone Number *"     type="tel"  autocomplete="tel">
+    <input id="mf-email"   placeholder="Email Address *"    type="email" autocomplete="email">
+    <button onclick="submitMidForm()">GET MY CASH OFFER →</button>
+  </div>
+  <p style="color:#444;font-size:11px;margin-top:12px;">🔒 Your information is safe and never shared.</p>
+</div>
