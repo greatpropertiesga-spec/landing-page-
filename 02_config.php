@@ -3,7 +3,7 @@
 //  SUPABASE REST API — No direct DB port needed
 // ══════════════════════════════════════════════════
 define('SB_URL', 'https://ejwlfxrdzwmtejosuyvi.supabase.co');
-define('SB_KEY', 'YOUR_SERVICE_ROLE_KEY'); // Supabase → Settings → API → service_role key
+define('SB_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqd2xmeHJkendtdGVqb3N1eXZpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTIzNTI4NiwiZXhwIjoyMDkwODExMjg2fQ.e06rWSO82xmQ6b8xOxAW6S4wg9G3XqLxRW0J7fS_3-A); // Supabase → Settings → API → service_role key
 
 // ══════════════════════════════════════════════════
 //  GMAIL NOTIFICATION
