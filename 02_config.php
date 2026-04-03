@@ -1,13 +1,12 @@
 <?php
 // ══════════════════════════════════════════
 //  SUPABASE / PostgreSQL CONNECTION
-//  Fill in your Supabase project credentials
 // ══════════════════════════════════════════
 
-$db_host = 'db.XXXXXXXXXXXXXXXXXXXX.supabase.co'; // Project host from Supabase
+$db_host = 'db.ejwlfxrdzwmtejosuyvi.supabase.co';
 $db_name = 'postgres';
 $db_user = 'postgres';
-$db_pass = 'YOUR_SUPABASE_PASSWORD';              // Settings > Database > Password
+$db_pass = '4078shadydrive';
 $db_port = '5432';
 
 try {
@@ -26,7 +25,7 @@ try {
 
 session_start();
 
-// ── Admin credentials (change these!) ──
+// ── Admin credentials ──
 $admin_user = 'admin';
 $admin_pass = 'ChangeThis123!';
 
