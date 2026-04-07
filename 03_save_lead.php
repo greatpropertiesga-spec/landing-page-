@@ -11,29 +11,21 @@ $phone   = trim($_POST['phone']   ?? '');
 $email   = trim($_POST['email']   ?? '');
 
 if (!$address || !$name || !$phone || !$email) {
-    http_response_code(400); echo 'All fields are required.'; exit;
+    http_response_code(400); echo 'All fields required'; exit;
 }
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    http_response_code(400); echo 'Invalid email.'; exit;
+    http_response_code(400); echo 'Invalid email'; exit;
 }
 
-// ── Save to Supabase via REST API ──
 $res = sb('POST', 'leads', [
-    'address' => $address,
-    'name'    => $name,
-    'phone'   => $phone,
-    'email'   => $email,
-    'status'  => 'New',
+    'address' => $address, 'name' => $name,
+    'phone'   => $phone,   'email' => $email, 'status' => 'New',
 ]);
 
 if ($res['code'] >= 400) {
-    http_response_code(500);
-    echo 'Error saving lead: ' . json_encode($res['data']);
-    exit;
+    error_log('Supabase error: ' . json_encode($res));
+    http_response_code(500); echo 'Error saving lead'; exit;
 }
 
-// ── Send Gmail alert ──
 sendGmailAlert($name, $phone, $email, $address);
-
 echo 'success';
-?>
