@@ -1,16 +1,21 @@
 FROM php:8.2-apache
 
-# PostgreSQL + cURL extensions
-RUN apt-get update && apt-get install -y libpq-dev libcurl4-openssl-dev \
-    && docker-php-ext-install pdo pdo_pgsql curl
+# Install system deps + PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpq-dev libcurl4-openssl-dev \
+    && docker-php-ext-install pdo pdo_pgsql \
+    && docker-php-ext-enable pdo_pgsql
+
+# cURL is built into PHP — just make sure the system lib is there
+RUN apt-get install -y curl
 
 RUN a2enmod rewrite
 
-# PHP config: sessions + errors
+# PHP config
 RUN mkdir -p /tmp/php_sessions && chmod 777 /tmp/php_sessions
 RUN echo "session.save_path = /tmp/php_sessions" >> /usr/local/etc/php/php.ini \
- && echo "display_errors = Off" >> /usr/local/etc/php/php.ini \
- && echo "log_errors = On" >> /usr/local/etc/php/php.ini
+ && echo "display_errors = On"  >> /usr/local/etc/php/php.ini \
+ && echo "error_reporting = E_ALL" >> /usr/local/etc/php/php.ini
 
 COPY . /var/www/html/
 
