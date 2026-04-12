@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // --- Supabase ---
 define('SB_URL', 'https://ejwlfxrdzwmtejosuyvi.supabase.co');
-define('SB_KEY', 'YOUR_SUPABASE_SERVICE_ROLE_KEY'); // <-- pega aqui tu service_role key
+define('SB_KEY', 'sbp_1c6afa5dd1664f1bca7947f13bac1de107df5c40');
 
 // --- Admin ---
 define('ADMIN_USER', 'admin');
@@ -26,8 +26,7 @@ define('GMAIL_PASS', 'YOUR_GMAIL_APP_PASSWORD');
 define('NOTIFY_TO',  'info@greatpropertiesga.com');
 
 // ============================================================
-//  Supabase REST helper - usa file_get_contents para evitar
-//  problemas con la extension cURL
+//  Supabase REST helper
 // ============================================================
 function sb(string $method, string $table, ?array $data = null, string $query = ''): array {
     $url = SB_URL . '/rest/v1/' . $table . ($query ? '?' . $query : '');
@@ -36,7 +35,7 @@ function sb(string $method, string $table, ?array $data = null, string $query = 
         'http' => [
             'method'        => $method,
             'header'        => implode("\r\n", [
-                'apikey: '            . SB_KEY,
+                'apikey: '               . SB_KEY,
                 'Authorization: Bearer ' . SB_KEY,
                 'Content-Type: application/json',
                 'Prefer: return=representation',
@@ -59,14 +58,14 @@ function sb(string $method, string $table, ?array $data = null, string $query = 
     }
 
     return [
-        'code'  => $code,
-        'data'  => $body ? json_decode($body, true) : null,
-        'raw'   => $body,
+        'code' => $code,
+        'data' => $body ? json_decode($body, true) : null,
+        'raw'  => $body,
     ];
 }
 
 // ============================================================
-//  Gmail SMTP
+//  Gmail SMTP (opcional)
 // ============================================================
 function sendGmailAlert(string $name, string $phone, string $email, string $address): void {
     if (GMAIL_PASS === 'YOUR_GMAIL_APP_PASSWORD') return;
