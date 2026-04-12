@@ -20,11 +20,20 @@ $all    = is_array($res['data']) ? $res['data'] : [];
 $sb_ok  = $res['code'] >= 200 && $res['code'] < 300;
 $sb_err = $res['raw'];
 
+// --- Stats ---
 $total     = count($all);
 $today     = count(array_filter($all, fn($r) => substr($r['created_at'],0,10)===date('Y-m-d')));
 $this_week = count(array_filter($all, fn($r) => strtotime($r['created_at'])>=strtotime('-7 days')));
-$new_count = count(array_filter($all, fn($r) => ($r['status']??'')==='New'));
 
+// --- Counts per status (for sidebar badges) ---
+$cnt = ['New'=>0,'Contacted'=>0,'Closed'=>0,'Lost'=>0];
+foreach ($all as $r) {
+    $s = $r['status'] ?? 'New';
+    if (isset($cnt[$s])) $cnt[$s]++;
+}
+$new_count = $cnt['New'];
+
+// --- Filter / Search ---
 $search = trim($_GET['q']??''); $filter = trim($_GET['status']??'');
 $leads  = array_filter($all, function($r) use ($search,$filter) {
     if ($filter && ($r['status']??'')!==$filter) return false;
@@ -48,16 +57,27 @@ $count = count($leads);
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222}
-    .sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:#111;display:flex;flex-direction:column;z-index:100}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;background:#111;display:flex;flex-direction:column;z-index:100}
     .s-logo{padding:22px 20px;font-size:15px;font-weight:bold;border-bottom:1px solid #1e1e1e;color:#fff}
     .s-logo span{color:#ffd700}
     .s-logo small{display:block;color:#555;font-size:11px;font-weight:normal;margin-top:2px}
     .sidebar nav{flex:1;padding:12px 0}
-    .nav-a{display:flex;align-items:center;gap:10px;padding:12px 20px;color:#777;text-decoration:none;font-size:14px;border-left:3px solid transparent;transition:all .15s}
+    .nav-a{display:flex;align-items:center;padding:12px 20px;color:#777;text-decoration:none;font-size:14px;border-left:3px solid transparent;transition:all .15s;gap:8px}
     .nav-a:hover,.nav-a.on{background:#1a1a1a;color:#fff;border-left-color:#cc0000}
+    .nav-label{flex:1}
+    /* Status count badge in sidebar */
+    .nav-badge{
+        display:inline-flex;align-items:center;justify-content:center;
+        min-width:22px;height:22px;padding:0 6px;
+        border-radius:11px;font-size:11px;font-weight:bold;
+        background:#2a2a2a;color:#888;
+        transition:background .15s,color .15s;
+    }
+    .nav-a:hover .nav-badge,.nav-a.on .nav-badge{background:#cc0000;color:#fff;}
+    .nav-badge.has-leads{background:#cc0000;color:#fff;}
     .s-foot{padding:16px 20px;border-top:1px solid #1e1e1e;font-size:12px;color:#555}
     .s-foot a{color:#777;text-decoration:none}.s-foot a:hover{color:#fff}
-    .main{margin-left:220px;min-height:100vh}
+    .main{margin-left:230px;min-height:100vh}
     .topbar{background:#fff;padding:15px 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .topbar h1{font-size:19px}
     .btn-out{background:#f5f5f5;color:#444;border:none;padding:8px 15px;border-radius:6px;font-size:13px;cursor:pointer;text-decoration:none;font-weight:bold}
@@ -65,10 +85,6 @@ $count = count($leads);
     .content{padding:24px}
     .alert{background:#fff0f0;border:1px solid #fca5a5;color:#b00;padding:14px 18px;border-radius:8px;margin-bottom:18px;font-size:13px;line-height:1.7}
     .alert code{display:block;background:#ffe;padding:6px 10px;border-radius:4px;margin-top:8px;font-size:11px;word-break:break-all;color:#555}
-    .info-box{background:#fff;border:2px dashed #ffd700;border-radius:12px;padding:28px;margin-bottom:20px;text-align:center}
-    .info-box h2{font-size:17px;margin-bottom:10px}
-    .info-box p{color:#555;font-size:14px;line-height:1.8}
-    .info-box code{background:#f5f5f5;padding:3px 8px;border-radius:4px;font-size:13px}
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
     .sc{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,.06);border-left:4px solid #ddd}
     .sc.r{border-color:#cc0000}.sc.g{border-color:#22c55e}.sc.b{border-color:#3b82f6}.sc.y{border-color:#f59e0b}
@@ -107,14 +123,35 @@ $count = count($leads);
 <div class="sidebar">
   <div class="s-logo">Great <span>Properties</span> GA<small>Admin Dashboard</small></div>
   <nav>
-    <a class="nav-a <?=!$filter&&!$search?'on':''?>" href="admin.php">&#128203; All Leads</a>
-    <a class="nav-a <?=$filter==='New'?'on':''?>" href="admin.php?status=New">&#127381; New</a>
-    <a class="nav-a <?=$filter==='Contacted'?'on':''?>" href="admin.php?status=Contacted">&#128222; Contacted</a>
-    <a class="nav-a <?=$filter==='Closed'?'on':''?>" href="admin.php?status=Closed">&#9989; Closed</a>
-    <a class="nav-a <?=$filter==='Lost'?'on':''?>" href="admin.php?status=Lost">&#128683; Lost</a>
+    <a class="nav-a <?=!$filter&&!$search?'on':''?>" href="admin.php">
+      <span>&#128203;</span>
+      <span class="nav-label">All Leads</span>
+      <span class="nav-badge <?=$total>0?'has-leads':''?>"><?=$total?></span>
+    </a>
+    <a class="nav-a <?=$filter==='New'?'on':''?>" href="admin.php?status=New">
+      <span>&#127381;</span>
+      <span class="nav-label">New</span>
+      <span class="nav-badge <?=$cnt['New']>0?'has-leads':''?>"><?=$cnt['New']?></span>
+    </a>
+    <a class="nav-a <?=$filter==='Contacted'?'on':''?>" href="admin.php?status=Contacted">
+      <span>&#128222;</span>
+      <span class="nav-label">Contacted</span>
+      <span class="nav-badge <?=$cnt['Contacted']>0?'has-leads':''?>"><?=$cnt['Contacted']?></span>
+    </a>
+    <a class="nav-a <?=$filter==='Closed'?'on':''?>" href="admin.php?status=Closed">
+      <span>&#9989;</span>
+      <span class="nav-label">Closed</span>
+      <span class="nav-badge <?=$cnt['Closed']>0?'has-leads':''?>"><?=$cnt['Closed']?></span>
+    </a>
+    <a class="nav-a <?=$filter==='Lost'?'on':''?>" href="admin.php?status=Lost">
+      <span>&#128683;</span>
+      <span class="nav-label">Lost</span>
+      <span class="nav-badge <?=$cnt['Lost']>0?'has-leads':''?>"><?=$cnt['Lost']?></span>
+    </a>
   </nav>
   <div class="s-foot">Logged in as <strong style="color:#fff">admin</strong><br><a href="logout.php">&#8594; Log out</a></div>
 </div>
+
 <div class="main">
   <div class="topbar">
     <h1>&#128203; Leads Dashboard</h1>
@@ -125,17 +162,7 @@ $count = count($leads);
   </div>
   <div class="content">
 
-    <?php if (SB_KEY === 'PASTE_YOUR_ANON_KEY_HERE'): ?>
-    <div class="info-box">
-      <h2>&#9888; Falta la Supabase API Key</h2>
-      <p>
-        Ve a <strong>supabase.com</strong> &rarr; tu proyecto &rarr;
-        <strong>Settings &rarr; API</strong><br>
-        Copia el key <strong>anon / public</strong> (empieza con <code>eyJ...</code>)<br>
-        P&eacute;galo en <code>02_config.php</code> donde dice <code>PASTE_YOUR_ANON_KEY_HERE</code>
-      </p>
-    </div>
-    <?php elseif (!$sb_ok): ?>
+    <?php if (!$sb_ok): ?>
     <div class="alert">
       &#9888; Error conectando con Supabase (HTTP <?=$res['code']?>)
       <code><?=htmlspecialchars(substr($sb_err,0,400))?></code>
