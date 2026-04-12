@@ -20,9 +20,8 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
     body{font-family:Arial,sans-serif;color:#222;overflow-x:hidden}
-    .countdown-bar{background:#ffd700;color:#111;text-align:center;padding:10px 16px;font-weight:bold;font-size:14px;position:sticky;top:0;z-index:200;line-height:1.4}
-    #countdown{font-size:17px;font-weight:bold;color:#cc0000}
-    nav{background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:space-between;padding:13px 24px;position:sticky;top:40px;z-index:199}
+    /* NAV — now at top:0 since no countdown bar */
+    nav{background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:space-between;padding:14px 24px;position:sticky;top:0;z-index:200}
     .nav-logo{color:#fff;font-size:18px;font-weight:bold}
     .nav-logo span{color:#ffd700}
     .nav-phone{background:#cc0000;color:#fff;padding:9px 18px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -32,7 +31,8 @@
     .hero-text{order:2;flex:1 1 340px;color:#fff;max-width:560px}
     .hero-badge{display:inline-block;background:#ffd700;color:#000;font-size:12px;font-weight:bold;padding:5px 13px;border-radius:20px;margin-bottom:14px}
     .hero-text h1{font-size:38px;line-height:1.15;margin-bottom:14px}
-    .hero-text h1 span{color:#ffd700}
+    /* Georgia now in white — clean and readable */
+    .hero-text h1 span{color:#ffffff}
     .hero-text .sub{color:#ddd;font-size:17px;margin-bottom:20px;line-height:1.55}
     .hero-bullets{list-style:none;color:#ddd;font-size:16px;margin-bottom:24px}
     .hero-bullets li{padding:6px 0;display:flex;align-items:flex-start;gap:10px}
@@ -41,8 +41,8 @@
     .hero-phone-btn:hover{background:#a00}
     .hero-form h2{font-size:19px;margin-bottom:4px;text-align:center;color:#b00}
     .form-sub{font-size:12px;color:#999;text-align:center;margin-bottom:18px}
-    .hero-form input,.hero-form select{width:100%;padding:13px 14px;margin-bottom:10px;border:1.5px solid #ddd;border-radius:7px;font-size:16px;transition:border-color .2s;-webkit-appearance:none;background:#fff}
-    .hero-form input:focus,.hero-form select:focus{outline:none;border-color:#cc0000}
+    .hero-form input{width:100%;padding:13px 14px;margin-bottom:10px;border:1.5px solid #ddd;border-radius:7px;font-size:16px;transition:border-color .2s;-webkit-appearance:none;background:#fff}
+    .hero-form input:focus{outline:none;border-color:#cc0000}
     .cta-btn{background:#cc0000;color:#fff;padding:16px;width:100%;border:none;border-radius:7px;font-size:17px;font-weight:bold;cursor:pointer;transition:background .2s;animation:pulse 2s infinite;-webkit-appearance:none}
     .cta-btn:hover{background:#a00;animation:none}
     @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(204,0,0,.45)}50%{box-shadow:0 0 0 10px rgba(204,0,0,0)}}
@@ -93,7 +93,6 @@
     .testi-card p{color:#444;font-size:14px;line-height:1.7;font-style:italic;margin-bottom:12px}
     .testi-author{font-weight:bold;color:#222;font-size:13px}
     .testi-loc{color:#999;font-size:11px}
-    /* MID FORM - FULL FIELDS */
     .mid-form-section{background:linear-gradient(135deg,#111,#222);color:#fff;padding:56px 20px;text-align:center}
     .mid-form-section h2{font-size:26px;margin-bottom:8px;line-height:1.3}
     .mid-form-section p{color:#aaa;font-size:15px;margin-bottom:28px}
@@ -127,7 +126,7 @@
     footer .f-logo span{color:#ffd700}
     footer a{color:#777;text-decoration:none;margin:0 8px}
     footer .f-links{margin:12px 0 8px}
-    .sticky-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;display:grid;grid-template-columns:1fr 1fr}
+    .sticky-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;grid-template-columns:1fr 1fr}
     .sticky-bar a{padding:16px 8px;font-size:14px;font-weight:bold;text-align:center;text-decoration:none;color:#fff}
     .sticky-call{background:#cc0000}.sticky-wa{background:#25D366}
     .wa-float{position:fixed;bottom:24px;right:20px;z-index:250;background:#25D366;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:transform .2s}
@@ -139,13 +138,13 @@
     .modal h3{font-size:24px;margin-bottom:8px;color:#111}
     .modal p{color:#666;font-size:15px;line-height:1.65;margin-bottom:22px}
     .modal .close-btn{background:#cc0000;color:#fff;border:none;padding:13px 36px;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;width:100%}
-    @media(min-width:700px){.hero-text{order:1}.hero-form{order:2}.hero-text h1{font-size:44px}nav{top:38px}.sticky-bar{display:none!important}.wa-float{display:flex}footer{padding-bottom:32px}}
+    @media(min-width:700px){.hero-text{order:1}.hero-form{order:2}.hero-text h1{font-size:44px}.sticky-bar{display:none!important}.wa-float{display:flex}footer{padding-bottom:32px}}
     @media(min-width:1024px){.hero-overlay{padding:80px 60px;justify-content:space-between}.hero-text h1{font-size:50px}section{padding:72px 48px}.sec-title{font-size:34px}.sec-sub{font-size:17px}}
-    @media(max-width:699px){.countdown-bar{font-size:12px;padding:8px 12px}#countdown{font-size:15px}nav{top:36px;padding:11px 16px}.nav-logo{font-size:16px}.hero-overlay{padding:32px 16px 50px}.hero-text h1{font-size:28px}.hero-text .sub{font-size:15px}.hero-bullets{font-size:14px}.hero-form{padding:22px 16px}.hero-form h2{font-size:17px}.cta-btn{font-size:16px;padding:15px}.trust-item .num{font-size:22px}.step{flex:1 1 140px}.cta-band h2{font-size:20px}.mid-form{grid-template-columns:1fr}.final-cta h2{font-size:24px}.wa-float{display:none}.sticky-bar{display:grid}footer{padding-bottom:72px}}
+    @media(max-width:699px){nav{padding:11px 16px}.nav-logo{font-size:16px}.hero-overlay{padding:32px 16px 50px}.hero-text h1{font-size:28px}.hero-text .sub{font-size:15px}.hero-bullets{font-size:14px}.hero-form{padding:22px 16px}.hero-form h2{font-size:17px}.cta-btn{font-size:16px;padding:15px}.trust-item .num{font-size:22px}.step{flex:1 1 140px}.cta-band h2{font-size:20px}.mid-form{grid-template-columns:1fr}.final-cta h2{font-size:24px}.wa-float{display:none}.sticky-bar{display:grid}footer{padding-bottom:72px}}
   </style>
 </head>
 <body>
-<div class="countdown-bar">⏱️ Limited slots available — Offer expires in: <span id="countdown">23:59:59</span></div>
+<!-- NO countdown bar -->
 <nav>
   <div class="nav-logo">Great <span>Properties</span> GA</div>
   <a class="nav-phone" href="tel:+14045901613">📞 (404) 590-1613</a>
@@ -238,7 +237,7 @@
   <h2 class="sec-title">What Georgia Homeowners Say</h2>
   <p class="sec-sub">Real stories. Real results. Real people.</p>
   <div class="testi-grid">
-    <div class="testi-card"><div class="stars">★★★★★</div><p>“I needed to sell fast for a job relocation. Got an offer the next day and closed in 10 days. Absolutely stress-free from start to finish!”</p><div class="testi-author">Michael T.</div><div class="testi-loc">Atlanta, GA</div></div>
+    <div class="testi-card"><div class="stars">★★★★★</div><p>“I needed to sell fast for a job relocation. Got an offer the next day and closed in 10 days. Absolutely stress-free!”</p><div class="testi-author">Michael T.</div><div class="testi-loc">Atlanta, GA</div></div>
     <div class="testi-card"><div class="stars">★★★★★</div><p>“My house needed major repairs. These guys bought it as-is and gave me a fair price. No headaches, no fees. Highly recommend!”</p><div class="testi-author">Sandra R.</div><div class="testi-loc">Marietta, GA</div></div>
     <div class="testi-card"><div class="stars">★★★★★</div><p>“Inherited my mother’s home and didn’t know what to do. They made it so easy. Closed in 2 weeks with cash in hand!”</p><div class="testi-author">James L.</div><div class="testi-loc">Decatur, GA</div></div>
   </div>
@@ -251,7 +250,6 @@
     <a class="btn-outline" href="tel:+14045901613">📞 (404) 590-1613</a>
   </div>
 </div>
-<!-- MID FORM - ALL FIELDS -->
 <div class="mid-form-section">
   <h2>Don’t Wait — Get Your Offer Today</h2>
   <p>Fill out the form and we’ll contact you within 24 hours.</p>
@@ -275,13 +273,13 @@
   <h2 class="sec-title">Frequently Asked Questions</h2>
   <p class="sec-sub">Everything you need to know about selling your home for cash.</p>
   <div class="faq-list">
-    <details class="faq-item"><summary>Is the cash offer really free with no obligation?</summary><p class="faq-body">Yes, 100%. There is absolutely no cost to receive your offer and no pressure to accept it. You decide on your own timeline.</p></details>
-    <details class="faq-item"><summary>Do I need to make repairs or clean before selling?</summary><p class="faq-body">Not at all. We buy homes in any condition — minor updates or major renovations. Just leave it exactly as-is.</p></details>
-    <details class="faq-item"><summary>How quickly can you close?</summary><p class="faq-body">We can close in as little as 7 days. If you need more time — 30, 60, or 90 days — we accommodate that too.</p></details>
-    <details class="faq-item"><summary>Are there any fees or commissions?</summary><p class="faq-body">Zero. We cover all closing costs. No agent commissions, no hidden charges. The offer is exactly what you receive.</p></details>
+    <details class="faq-item"><summary>Is the cash offer really free with no obligation?</summary><p class="faq-body">Yes, 100%. There is absolutely no cost to receive your offer and no pressure to accept it.</p></details>
+    <details class="faq-item"><summary>Do I need to make repairs or clean before selling?</summary><p class="faq-body">Not at all. We buy homes in any condition. Just leave it exactly as-is.</p></details>
+    <details class="faq-item"><summary>How quickly can you close?</summary><p class="faq-body">We can close in as little as 7 days, or work around your timeline if you need more time.</p></details>
+    <details class="faq-item"><summary>Are there any fees or commissions?</summary><p class="faq-body">Zero. We cover all closing costs. The offer we make is exactly what you receive.</p></details>
     <details class="faq-item"><summary>What types of properties do you buy?</summary><p class="faq-body">Single-family homes, condos, townhouses, duplexes, and multi-family properties anywhere in Georgia.</p></details>
-    <details class="faq-item"><summary>What if I’m facing foreclosure or behind on payments?</summary><p class="faq-body">We specialize in these situations. The sooner you contact us, the more options we have to help you.</p></details>
-    <details class="faq-item"><summary>How is your cash offer calculated?</summary><p class="faq-body">Based on the property’s condition, comparable sales nearby, and repair costs. We always aim for the highest fair offer possible.</p></details>
+    <details class="faq-item"><summary>What if I’m facing foreclosure or behind on payments?</summary><p class="faq-body">We specialize in these situations. The sooner you contact us, the more options we have.</p></details>
+    <details class="faq-item"><summary>How is your cash offer calculated?</summary><p class="faq-body">Based on condition, comparable sales nearby, and repair costs. We always aim for the highest fair offer.</p></details>
   </div>
   <div class="faq-cta"><a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Still have questions? Get Your Free Offer →</a></div>
 </section>
@@ -315,12 +313,6 @@
   </div>
 </div>
 <script>
-(function(){
-  let end;try{end=parseInt(localStorage.getItem('cd_end'))||0}catch(e){end=0}
-  if(!end||end<Date.now()){end=Date.now()+86400000;try{localStorage.setItem('cd_end',end)}catch(e){}}
-  function tick(){const d=Math.max(0,end-Date.now());const el=document.getElementById('countdown');if(el)el.textContent=String(Math.floor(d/3600000)).padStart(2,'0')+':'+String(Math.floor((d%3600000)/60000)).padStart(2,'0')+':'+String(Math.floor((d%60000)/1000)).padStart(2,'0')}
-  tick();setInterval(tick,1000)
-})();
 async function submitForm(data,btn,orig){
   try{await fetch('save_lead.php',{method:'POST',body:data});document.getElementById('successModal').classList.add('show')}catch(e){alert('Something went wrong. Please call (404) 590-1613')}
   btn.textContent=orig;btn.disabled=false
