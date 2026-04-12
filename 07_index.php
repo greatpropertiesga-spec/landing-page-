@@ -20,7 +20,6 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
     body{font-family:Arial,sans-serif;color:#222;overflow-x:hidden}
-    /* NAV — now at top:0 since no countdown bar */
     nav{background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:space-between;padding:14px 24px;position:sticky;top:0;z-index:200}
     .nav-logo{color:#fff;font-size:18px;font-weight:bold}
     .nav-logo span{color:#ffd700}
@@ -31,7 +30,6 @@
     .hero-text{order:2;flex:1 1 340px;color:#fff;max-width:560px}
     .hero-badge{display:inline-block;background:#ffd700;color:#000;font-size:12px;font-weight:bold;padding:5px 13px;border-radius:20px;margin-bottom:14px}
     .hero-text h1{font-size:38px;line-height:1.15;margin-bottom:14px}
-    /* Georgia now in white — clean and readable */
     .hero-text h1 span{color:#ffffff}
     .hero-text .sub{color:#ddd;font-size:17px;margin-bottom:20px;line-height:1.55}
     .hero-bullets{list-style:none;color:#ddd;font-size:16px;margin-bottom:24px}
@@ -126,11 +124,13 @@
     footer .f-logo span{color:#ffd700}
     footer a{color:#777;text-decoration:none;margin:0 8px}
     footer .f-links{margin:12px 0 8px}
-    .sticky-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;grid-template-columns:1fr 1fr}
-    .sticky-bar a{padding:16px 8px;font-size:14px;font-weight:bold;text-align:center;text-decoration:none;color:#fff}
-    .sticky-call{background:#cc0000}.sticky-wa{background:#25D366}
-    .wa-float{position:fixed;bottom:24px;right:20px;z-index:250;background:#25D366;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;text-decoration:none;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:transform .2s}
-    .wa-float:hover{transform:scale(1.1)}
+    /* Sticky call bar — phone only, full width */
+    .sticky-call{
+      display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;
+      background:#cc0000;color:#fff;
+      padding:16px;font-size:16px;font-weight:bold;
+      text-align:center;text-decoration:none;
+    }
     .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;align-items:center;justify-content:center;padding:16px}
     .modal-bg.show{display:flex}
     .modal{background:#fff;border-radius:16px;padding:40px 28px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.4)}
@@ -138,13 +138,35 @@
     .modal h3{font-size:24px;margin-bottom:8px;color:#111}
     .modal p{color:#666;font-size:15px;line-height:1.65;margin-bottom:22px}
     .modal .close-btn{background:#cc0000;color:#fff;border:none;padding:13px 36px;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;width:100%}
-    @media(min-width:700px){.hero-text{order:1}.hero-form{order:2}.hero-text h1{font-size:44px}.sticky-bar{display:none!important}.wa-float{display:flex}footer{padding-bottom:32px}}
-    @media(min-width:1024px){.hero-overlay{padding:80px 60px;justify-content:space-between}.hero-text h1{font-size:50px}section{padding:72px 48px}.sec-title{font-size:34px}.sec-sub{font-size:17px}}
-    @media(max-width:699px){nav{padding:11px 16px}.nav-logo{font-size:16px}.hero-overlay{padding:32px 16px 50px}.hero-text h1{font-size:28px}.hero-text .sub{font-size:15px}.hero-bullets{font-size:14px}.hero-form{padding:22px 16px}.hero-form h2{font-size:17px}.cta-btn{font-size:16px;padding:15px}.trust-item .num{font-size:22px}.step{flex:1 1 140px}.cta-band h2{font-size:20px}.mid-form{grid-template-columns:1fr}.final-cta h2{font-size:24px}.wa-float{display:none}.sticky-bar{display:grid}footer{padding-bottom:72px}}
+    @media(min-width:700px){
+      .hero-text{order:1}.hero-form{order:2}.hero-text h1{font-size:44px}
+      .sticky-call{display:none!important}
+      footer{padding-bottom:32px}
+    }
+    @media(min-width:1024px){
+      .hero-overlay{padding:80px 60px;justify-content:space-between}
+      .hero-text h1{font-size:50px}
+      section{padding:72px 48px}
+      .sec-title{font-size:34px}.sec-sub{font-size:17px}
+    }
+    @media(max-width:699px){
+      nav{padding:11px 16px}.nav-logo{font-size:16px}
+      .hero-overlay{padding:32px 16px 50px}
+      .hero-text h1{font-size:28px}.hero-text .sub{font-size:15px}
+      .hero-bullets{font-size:14px}
+      .hero-form{padding:22px 16px}.hero-form h2{font-size:17px}
+      .cta-btn{font-size:16px;padding:15px}
+      .trust-item .num{font-size:22px}
+      .step{flex:1 1 140px}
+      .cta-band h2{font-size:20px}
+      .mid-form{grid-template-columns:1fr}
+      .final-cta h2{font-size:24px}
+      .sticky-call{display:block}
+      footer{padding-bottom:68px}
+    }
   </style>
 </head>
 <body>
-<!-- NO countdown bar -->
 <nav>
   <div class="nav-logo">Great <span>Properties</span> GA</div>
   <a class="nav-phone" href="tel:+14045901613">📞 (404) 590-1613</a>
@@ -189,9 +211,9 @@
   <h2 class="sec-title">How It Works</h2>
   <p class="sec-sub">Three simple steps — from contact to cash in hand.</p>
   <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-icon">📋</div><h3>Tell Us About Your Property</h3><p>Fill out the quick form above with your address. It takes under 60 seconds and it’s 100% free.</p></div>
+    <div class="step"><div class="step-num">1</div><div class="step-icon">📋</div><h3>Tell Us About Your Property</h3><p>Fill out the quick form above with your address. It takes under 60 seconds and it's 100% free.</p></div>
     <div class="step"><div class="step-num">2</div><div class="step-icon">💵</div><h3>Receive Your Cash Offer</h3><p>We review your property and send a fair, no-obligation cash offer within 24 hours.</p></div>
-    <div class="step"><div class="step-num">3</div><div class="step-icon">🔑</div><h3>Close on Your Schedule</h3><p>You choose the date. Close in 7 days or whenever you’re ready. Cash at closing.</p></div>
+    <div class="step"><div class="step-num">3</div><div class="step-icon">🔑</div><h3>Close on Your Schedule</h3><p>You choose the date. Close in 7 days or whenever you're ready. Cash at closing.</p></div>
   </div>
 </section>
 <div class="cta-band">
@@ -237,9 +259,9 @@
   <h2 class="sec-title">What Georgia Homeowners Say</h2>
   <p class="sec-sub">Real stories. Real results. Real people.</p>
   <div class="testi-grid">
-    <div class="testi-card"><div class="stars">★★★★★</div><p>“I needed to sell fast for a job relocation. Got an offer the next day and closed in 10 days. Absolutely stress-free!”</p><div class="testi-author">Michael T.</div><div class="testi-loc">Atlanta, GA</div></div>
-    <div class="testi-card"><div class="stars">★★★★★</div><p>“My house needed major repairs. These guys bought it as-is and gave me a fair price. No headaches, no fees. Highly recommend!”</p><div class="testi-author">Sandra R.</div><div class="testi-loc">Marietta, GA</div></div>
-    <div class="testi-card"><div class="stars">★★★★★</div><p>“Inherited my mother’s home and didn’t know what to do. They made it so easy. Closed in 2 weeks with cash in hand!”</p><div class="testi-author">James L.</div><div class="testi-loc">Decatur, GA</div></div>
+    <div class="testi-card"><div class="stars">★★★★★</div><p>"I needed to sell fast for a job relocation. Got an offer the next day and closed in 10 days. Absolutely stress-free!"</p><div class="testi-author">Michael T.</div><div class="testi-loc">Atlanta, GA</div></div>
+    <div class="testi-card"><div class="stars">★★★★★</div><p>"My house needed major repairs. These guys bought it as-is and gave me a fair price. No headaches, no fees. Highly recommend!"</p><div class="testi-author">Sandra R.</div><div class="testi-loc">Marietta, GA</div></div>
+    <div class="testi-card"><div class="stars">★★★★★</div><p>"Inherited my mother's home and didn't know what to do. They made it so easy. Closed in 2 weeks with cash in hand!"</p><div class="testi-author">James L.</div><div class="testi-loc">Decatur, GA</div></div>
   </div>
 </section>
 <div class="cta-band">
@@ -251,8 +273,8 @@
   </div>
 </div>
 <div class="mid-form-section">
-  <h2>Don’t Wait — Get Your Offer Today</h2>
-  <p>Fill out the form and we’ll contact you within 24 hours.</p>
+  <h2>Don't Wait — Get Your Offer Today</h2>
+  <p>Fill out the form and we'll contact you within 24 hours.</p>
   <div class="mid-form">
     <input id="mf-address" placeholder="Property Address *" type="text"  autocomplete="street-address">
     <input id="mf-name"    placeholder="Full Name *"        type="text"  autocomplete="name">
@@ -278,7 +300,7 @@
     <details class="faq-item"><summary>How quickly can you close?</summary><p class="faq-body">We can close in as little as 7 days, or work around your timeline if you need more time.</p></details>
     <details class="faq-item"><summary>Are there any fees or commissions?</summary><p class="faq-body">Zero. We cover all closing costs. The offer we make is exactly what you receive.</p></details>
     <details class="faq-item"><summary>What types of properties do you buy?</summary><p class="faq-body">Single-family homes, condos, townhouses, duplexes, and multi-family properties anywhere in Georgia.</p></details>
-    <details class="faq-item"><summary>What if I’m facing foreclosure or behind on payments?</summary><p class="faq-body">We specialize in these situations. The sooner you contact us, the more options we have.</p></details>
+    <details class="faq-item"><summary>What if I'm facing foreclosure or behind on payments?</summary><p class="faq-body">We specialize in these situations. The sooner you contact us, the more options we have.</p></details>
     <details class="faq-item"><summary>How is your cash offer calculated?</summary><p class="faq-body">Based on condition, comparable sales nearby, and repair costs. We always aim for the highest fair offer.</p></details>
   </div>
   <div class="faq-cta"><a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Still have questions? Get Your Free Offer →</a></div>
@@ -296,14 +318,17 @@
 <footer>
   <div class="f-logo">Great <span>Properties</span> GA</div>
   <div>We Buy Houses Fast Across Georgia — Cash Offers in 24 Hours</div>
-  <div class="f-links"><a href="mailto:info@greatpropertiesga.com">info@greatpropertiesga.com</a><a href="tel:+14045901613">(404) 590-1613</a></div>
+  <div class="f-links">
+    <a href="mailto:info@greatpropertiesga.com">info@greatpropertiesga.com</a>
+    <a href="tel:+14045901613">(404) 590-1613</a>
+  </div>
   <div>© 2026 Great Properties GA · Atlanta, Georgia · All Rights Reserved</div>
 </footer>
-<div class="sticky-bar">
-  <a class="sticky-call" href="tel:+14045901613">📞 Call Us Now</a>
-  <a class="sticky-wa" href="https://wa.me/14045901613?text=Hi%2C%20I%20want%20a%20cash%20offer%20for%20my%20property" target="_blank">💬 WhatsApp</a>
-</div>
-<a class="wa-float" href="https://wa.me/14045901613?text=Hi%2C%20I%20want%20a%20cash%20offer%20for%20my%20property" target="_blank">💬</a>
+
+<!-- Sticky call button — mobile only, phone call only -->
+<a class="sticky-call" href="tel:+14045901613">📞 Call Now for a Free Cash Offer</a>
+
+<!-- Modal -->
 <div class="modal-bg" id="successModal">
   <div class="modal">
     <div class="check">✅</div>
