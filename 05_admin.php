@@ -25,21 +25,8 @@ $today     = count(array_filter($all, fn($r) => substr($r['created_at'],0,10)===
 $this_week = count(array_filter($all, fn($r) => strtotime($r['created_at'])>=strtotime('-7 days')));
 
 $cnt = ['New'=>0,'Contacted'=>0,'Closed'=>0,'Lost'=>0];
-foreach ($all as $r) {
-    $s = $r['status'] ?? 'New';
-    if (isset($cnt[$s])) $cnt[$s]++;
-}
+foreach ($all as $r) { $s=$r['status']??'New'; if(isset($cnt[$s])) $cnt[$s]++; }
 $new_count = $cnt['New'];
-
-// Daily chart last 7 days
-$daily = [];
-for ($i=6;$i>=0;$i--) {
-    $daily[date('M j',strtotime("-{$i} days"))] = 0;
-}
-foreach ($all as $r) {
-    $lbl = date('M j', strtotime(substr($r['created_at'],0,10)));
-    if (isset($daily[$lbl])) $daily[$lbl]++;
-}
 
 $search = trim($_GET['q']??''); $filter = trim($_GET['status']??'');
 $leads  = array_filter($all, function($r) use ($search,$filter) {
@@ -61,8 +48,6 @@ $count = count($leads);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Leads Dashboard | Great Properties GA</title>
-
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#cc0000">
   <meta name="mobile-web-app-capable" content="yes">
@@ -70,48 +55,31 @@ $count = count($leads);
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GP Admin">
   <link rel="apple-touch-icon" href="/icon-512.svg">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222}
-    .sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:#111;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
-    .s-logo{padding:22px 20px;font-size:15px;font-weight:bold;border-bottom:1px solid #1e1e1e;color:#fff;flex-shrink:0}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;background:#111;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+    .s-logo{padding:22px 20px;font-size:15px;font-weight:bold;border-bottom:1px solid #1e1e1e;color:#fff}
     .s-logo span{color:#ffd700}
     .s-logo small{display:block;color:#555;font-size:11px;font-weight:normal;margin-top:2px}
-    .sidebar nav{padding:12px 0;flex-shrink:0}
+    .sidebar nav{flex:1;padding:12px 0}
     .nav-a{display:flex;align-items:center;padding:12px 20px;color:#777;text-decoration:none;font-size:14px;border-left:3px solid transparent;transition:all .15s;gap:8px}
     .nav-a:hover,.nav-a.on{background:#1a1a1a;color:#fff;border-left-color:#cc0000}
     .nav-label{flex:1}
     .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;font-size:11px;font-weight:bold;background:#2a2a2a;color:#888;transition:all .15s}
-    .nav-a:hover .nav-badge,.nav-a.on .nav-badge{background:#cc0000;color:#fff}
-    .nav-badge.hot{background:#cc0000;color:#fff}
-    .chart-section{flex-shrink:0;border-top:1px solid #1e1e1e;padding:20px 16px 16px;background:#0d0d0d}
-    .chart-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:14px;text-align:center;font-weight:bold}
-    .donut-wrap{position:relative;width:140px;margin:0 auto 14px}
-    .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
-    .donut-center .dc-num{font-size:22px;font-weight:bold;color:#fff;line-height:1}
-    .donut-center .dc-lbl{font-size:9px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
-    .chart-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:16px}
-    .leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#888}
-    .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-    .leg-val{margin-left:auto;color:#fff;font-weight:bold;font-size:12px}
-    .bar-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:10px;text-align:center;font-weight:bold}
-    .bar-wrap{width:100%}
-    /* Install button in sidebar */
-    .install-wrap{flex-shrink:0;padding:12px 16px;border-top:1px solid #1e1e1e;background:#0d0d0d}
+    .nav-a:hover .nav-badge,.nav-a.on .nav-badge,.nav-badge.hot{background:#cc0000;color:#fff}
+    .install-wrap{padding:12px 16px;border-top:1px solid #1e1e1e}
     .btn-pwa{width:100%;background:linear-gradient(135deg,#cc0000,#990000);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
     .btn-pwa:hover{opacity:.88}
-    .btn-pwa.installed{background:#1a1a1a;color:#555;cursor:default}
-    .s-foot{padding:14px 20px;border-top:1px solid #1e1e1e;font-size:12px;color:#555;flex-shrink:0}
+    .s-foot{padding:14px 20px;border-top:1px solid #1e1e1e;font-size:12px;color:#555}
     .s-foot a{color:#777;text-decoration:none}.s-foot a:hover{color:#fff}
-    .main{margin-left:240px;min-height:100vh}
+    .main{margin-left:230px;min-height:100vh}
     .topbar{background:#fff;padding:15px 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .topbar h1{font-size:19px}
     .btn-out{background:#f5f5f5;color:#444;border:none;padding:8px 15px;border-radius:6px;font-size:13px;cursor:pointer;text-decoration:none;font-weight:bold}
     .btn-out:hover{background:#eee}
     .content{padding:24px}
-    .alert{background:#fff0f0;border:1px solid #fca5a5;color:#b00;padding:14px 18px;border-radius:8px;margin-bottom:18px;font-size:13px;line-height:1.7}
+    .alert{background:#fff0f0;border:1px solid #fca5a5;color:#b00;padding:14px 18px;border-radius:8px;margin-bottom:18px;font-size:13px}
     .alert code{display:block;background:#ffe;padding:6px 10px;border-radius:4px;margin-top:8px;font-size:11px;word-break:break-all;color:#555}
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
     .sc{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,.06);border-left:4px solid #ddd}
@@ -148,7 +116,6 @@ $count = count($leads);
   </style>
 </head>
 <body>
-
 <div class="sidebar">
   <div class="s-logo">Great <span>Properties</span> GA<small>Admin Dashboard</small></div>
   <nav>
@@ -172,38 +139,14 @@ $count = count($leads);
       <span>&#128683;</span><span class="nav-label">Lost</span>
       <span class="nav-badge <?=$cnt['Lost']>0?'hot':''?>"><?=$cnt['Lost']?></span>
     </a>
+    <a class="nav-a" href="charts.php">
+      <span>&#128200;</span><span class="nav-label">Charts</span>
+    </a>
   </nav>
-
-  <div class="chart-section">
-    <div class="chart-title">&#128200; Lead Overview</div>
-    <div class="donut-wrap">
-      <canvas id="donutChart" width="140" height="140"></canvas>
-      <div class="donut-center">
-        <div class="dc-num"><?=$total?></div>
-        <div class="dc-lbl">Total</div>
-      </div>
-    </div>
-    <div class="chart-legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>New<span class="leg-val"><?=$cnt['New']?></span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Contacted<span class="leg-val"><?=$cnt['Contacted']?></span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Closed<span class="leg-val"><?=$cnt['Closed']?></span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:#6b7280"></div>Lost<span class="leg-val"><?=$cnt['Lost']?></span></div>
-    </div>
-    <div class="bar-title">&#128337; Last 7 Days</div>
-    <div class="bar-wrap"><canvas id="barChart" height="110"></canvas></div>
-  </div>
-
-  <!-- Install App Button -->
   <div class="install-wrap">
-    <button class="btn-pwa" id="btn-pwa" style="display:none">
-      &#11015; Install App on Phone
-    </button>
+    <button class="btn-pwa" id="btn-pwa" style="display:none">&#11015; Install App on Phone</button>
   </div>
-
-  <div class="s-foot">
-    Logged in as <strong style="color:#fff">admin</strong><br>
-    <a href="logout.php">&#8594; Log out</a>
-  </div>
+  <div class="s-foot">Logged in as <strong style="color:#fff">admin</strong><br><a href="logout.php">&#8594; Log out</a></div>
 </div>
 
 <div class="main">
@@ -215,21 +158,15 @@ $count = count($leads);
     </div>
   </div>
   <div class="content">
-
     <?php if (!$sb_ok): ?>
-    <div class="alert">
-      &#9888; Error conectando con Supabase (HTTP <?=$res['code']?>)
-      <code><?=htmlspecialchars(substr($sb_err,0,400))?></code>
-    </div>
+    <div class="alert">&#9888; Error conectando con Supabase (HTTP <?=$res['code']?>)<code><?=htmlspecialchars(substr($sb_err,0,400))?></code></div>
     <?php endif; ?>
-
     <div class="stats">
       <div class="sc r"><div class="si">&#128101;</div><div class="sn"><?=$total?></div><div class="sl">Total Leads</div></div>
       <div class="sc g"><div class="si">&#128197;</div><div class="sn"><?=$today?></div><div class="sl">Today</div></div>
       <div class="sc b"><div class="si">&#128198;</div><div class="sn"><?=$this_week?></div><div class="sl">This Week</div></div>
       <div class="sc y"><div class="si">&#127381;</div><div class="sn"><?=$new_count?></div><div class="sl">New / Unread</div></div>
     </div>
-
     <div class="toolbar">
       <form method="GET" action="admin.php">
         <input class="ti" type="text" name="q" value="<?=htmlspecialchars($search)?>" placeholder="&#128269; Search name, phone, email, address...">
@@ -245,7 +182,6 @@ $count = count($leads);
       </form>
       <span class="rc"><?=$count?> result<?=$count!==1?'s':''?></span>
     </div>
-
     <div class="tw">
       <table>
         <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Status</th><th>Date</th><th></th></tr></thead>
@@ -289,89 +225,16 @@ $count = count($leads);
     </div>
   </div>
 </div>
-
 <script>
-// ── Service Worker ──
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
-}
-
-// ── PWA Install ──
-let deferredPrompt;
-const pwaBtn = document.getElementById('btn-pwa');
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  pwaBtn.style.display = 'flex';
-});
-
-pwaBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  if (outcome === 'accepted') {
-    pwaBtn.textContent = '✅ App Installed!';
-    pwaBtn.classList.add('installed');
-    pwaBtn.style.display = 'flex';
-  } else {
-    pwaBtn.style.display = 'none';
-  }
-});
-
-window.addEventListener('appinstalled', () => {
-  pwaBtn.textContent = '✅ App Installed!';
-  pwaBtn.classList.add('installed');
-  pwaBtn.style.display = 'flex';
-});
-
-// iOS Safari
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-if (isIOS && isSafari && !isStandalone) {
-  pwaBtn.style.display = 'flex';
-  pwaBtn.textContent = '📱 Install on iPhone';
-  pwaBtn.addEventListener('click', () => {
-    alert('To install on iPhone:\n\n1. Tap ↑ Share at bottom of Safari\n2. Scroll & tap "Add to Home Screen"\n3. Tap "Add"');
-  }, { once: true });
-}
-
-// ── Charts ──
-new Chart(document.getElementById('donutChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['New','Contacted','Closed','Lost'],
-    datasets:[{
-      data: [<?=$cnt['New']?>,<?=$cnt['Contacted']?>,<?=$cnt['Closed']?>,<?=$cnt['Lost']?>],
-      backgroundColor: ['#f59e0b','#3b82f6','#22c55e','#6b7280'],
-      borderWidth: 0, hoverOffset: 6
-    }]
-  },
-  options: {
-    cutout:'68%',
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed}` }}},
-    animation:{duration:800}
-  }
-});
-
-const barData = <?=json_encode(array_values($daily))?>;
-new Chart(document.getElementById('barChart'), {
-  type: 'bar',
-  data: {
-    labels: <?=json_encode(array_keys($daily))?>,
-    datasets:[{ data: barData, backgroundColor: barData.map(v=>v>0?'#cc0000':'#2a2a2a'), borderRadius:4, borderSkipped:false }]
-  },
-  options: {
-    plugins:{legend:{display:false}, tooltip:{callbacks:{label: ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}` }}},
-    scales:{
-      x:{ticks:{color:'#555',font:{size:9}},grid:{display:false},border:{display:false}},
-      y:{ticks:{color:'#555',font:{size:9},stepSize:1,precision:0},grid:{color:'#1a1a1a'},border:{display:false},beginAtZero:true}
-    },
-    animation:{duration:600}
-  }
-});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+let dp; const pb=document.getElementById('btn-pwa');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;pb.style.display='flex';});
+pb.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;dp=null;if(outcome==='accepted'){pb.textContent='\u2705 App Installed!';pb.style.display='flex';}else pb.style.display='none';});
+window.addEventListener('appinstalled',()=>{pb.textContent='\u2705 App Installed!';pb.style.display='flex';});
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSafari=/safari/i.test(navigator.userAgent)&&!/chrome/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches;
+if(isIOS&&isSafari&&!isStandalone){pb.style.display='flex';pb.textContent='\ud83d\udcf1 Install on iPhone';pb.addEventListener('click',()=>alert('1. Tap \u2191 Share\n2. Add to Home Screen\n3. Tap Add'),{once:true});}
 </script>
 </body>
 </html>
