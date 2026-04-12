@@ -13,10 +13,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // --- Supabase ---
-// NOTE: Use the ANON key from Supabase > Settings > API > anon/public
-// It starts with "eyJ..." NOT "sbp_"
 define('SB_URL', 'https://ejwlfxrdzwmtejosuyvi.supabase.co');
-define('SB_KEY', 'PASTE_YOUR_ANON_KEY_HERE'); // eyJ...
+define('SB_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqd2xmeHJkendtdGVqb3N1eXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzUyODYsImV4cCI6MjA5MDgxMTI4Nn0.ZRDtzHZbuiIK07H3QFlQc8-XcF5e3KctSpFDAkbr6Fk');
 
 // --- Admin ---
 define('ADMIN_USER', 'admin');
