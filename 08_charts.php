@@ -2,20 +2,12 @@
 require_once __DIR__ . '/config.php';
 if (empty($_SESSION['admin_logged_in'])) { header('Location: login.php'); exit; }
 
-$res  = sb('GET', 'leads', null, 'order=id.desc&select=*');
-$all  = is_array($res['data']) ? $res['data'] : [];
+$res   = sb('GET', 'leads', null, 'order=id.desc&select=*');
+$all   = is_array($res['data']) ? $res['data'] : [];
 $total = count($all);
 
 $cnt = ['New'=>0,'Contacted'=>0,'Closed'=>0,'Lost'=>0];
 foreach ($all as $r) { $s=$r['status']??'New'; if(isset($cnt[$s])) $cnt[$s]++; }
-
-// Last 30 days daily
-$daily30 = [];
-for ($i=29;$i>=0;$i--) $daily30[date('M j',strtotime("-{$i} days"))]=0;
-foreach ($all as $r) {
-    $lbl=date('M j',strtotime(substr($r['created_at'],0,10)));
-    if(isset($daily30[$lbl])) $daily30[$lbl]++;
-}
 
 // Last 7 days
 $daily7=[];
@@ -25,19 +17,24 @@ foreach($all as $r){
     if(isset($daily7[$lbl])) $daily7[$lbl]++;
 }
 
+// Last 30 days
+$daily30=[];
+for($i=29;$i>=0;$i--) $daily30[date('M j',strtotime("-{$i} days"))]=0;
+foreach($all as $r){
+    $lbl=date('M j',strtotime(substr($r['created_at'],0,10)));
+    if(isset($daily30[$lbl])) $daily30[$lbl]++;
+}
+
 // Monthly last 6 months
 $monthly=[];
-for($i=5;$i>=0;$i--){
-    $monthly[date('M Y',strtotime("-{$i} months"))]=0;
-}
+for($i=5;$i>=0;$i--) $monthly[date('M Y',strtotime("-{$i} months"))]=0;
 foreach($all as $r){
     $lbl=date('M Y',strtotime(substr($r['created_at'],0,10)));
     if(isset($monthly[$lbl])) $monthly[$lbl]++;
 }
 
-// Conversion rate
 $closedPct = $total > 0 ? round($cnt['Closed']/$total*100,1) : 0;
-$contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
+$totalJS   = (int)$total;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,9 +50,10 @@ $contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
     body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222}
 
-    /* SIDEBAR */
+    /* ── SIDEBAR ── */
     .sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;background:#111;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
     .s-logo{padding:22px 20px;font-size:15px;font-weight:bold;border-bottom:1px solid #1e1e1e;color:#fff}
     .s-logo span{color:#ffd700}
@@ -71,70 +69,61 @@ $contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
     .s-foot{padding:14px 20px;border-top:1px solid #1e1e1e;font-size:12px;color:#555}
     .s-foot a{color:#777;text-decoration:none}.s-foot a:hover{color:#fff}
 
-    /* MAIN */
+    /* ── MAIN ── */
     .main{margin-left:230px;min-height:100vh}
     .topbar{background:#fff;padding:15px 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .topbar h1{font-size:19px}
     .btn-out{background:#f5f5f5;color:#444;border:none;padding:8px 15px;border-radius:6px;font-size:13px;cursor:pointer;text-decoration:none;font-weight:bold}
-    .content{padding:28px}
+    .btn-out:hover{background:#eee}
+    .content{padding:24px}
 
-    /* STAT CARDS */
-    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
-    .kpi{
-      background:#fff;border-radius:14px;padding:22px 20px;
-      box-shadow:0 2px 12px rgba(0,0,0,.07);
-      border-top:4px solid #ddd;text-align:center;
-    }
+    /* ── KPI ── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+    .kpi{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);border-top:4px solid #ddd;text-align:center}
     .kpi.red{border-color:#cc0000}.kpi.green{border-color:#22c55e}
     .kpi.blue{border-color:#3b82f6}.kpi.yellow{border-color:#f59e0b}.kpi.gray{border-color:#6b7280}
-    .kpi-num{font-size:40px;font-weight:bold;color:#111;line-height:1}
-    .kpi-pct{font-size:18px;font-weight:bold;color:#22c55e}
-    .kpi-label{font-size:13px;color:#888;margin-top:6px}
+    .kpi-num{font-size:38px;font-weight:bold;color:#111;line-height:1}
+    .kpi-pct{font-size:28px;font-weight:bold;color:#22c55e}
+    .kpi-label{font-size:12px;color:#888;margin-top:6px}
 
-    /* CHART CARDS */
-    .chart-grid{display:grid;gap:20px;grid-template-columns:1fr 1fr;margin-bottom:20px}
-    .chart-card{
-      background:#fff;border-radius:14px;
-      padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.07);
-    }
+    /* ── CHART GRID ── */
+    .chart-row{display:grid;gap:18px;grid-template-columns:1fr 1fr;margin-bottom:18px}
+    .chart-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
     .chart-card.full{grid-column:1/-1}
-    .chart-card h2{
-      font-size:16px;font-weight:bold;color:#111;
-      margin-bottom:20px;display:flex;align-items:center;gap:8px;
-    }
-    .chart-card h2 span{font-size:20px}
-    .chart-wrap{position:relative}
-    .donut-wrap-big{position:relative;max-width:280px;margin:0 auto}
-    .donut-center-big{
-      position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);
-      text-align:center;pointer-events:none;
-    }
-    .donut-center-big .dc-num{font-size:44px;font-weight:bold;color:#111;line-height:1}
-    .donut-center-big .dc-lbl{font-size:12px;color:#888;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+    .chart-card h2{font-size:15px;font-weight:bold;color:#111;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .chart-card h2 em{font-size:19px;font-style:normal}
 
-    /* Legend */
-    .legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
-    .leg{
-      display:flex;align-items:center;gap:10px;
-      background:#f8f8f8;border-radius:8px;padding:10px 14px;
-    }
-    .leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
-    .leg-info{flex:1}
-    .leg-name{font-size:13px;color:#555;font-weight:500}
-    .leg-count{font-size:22px;font-weight:bold;color:#111}
-    .leg-pct{font-size:11px;color:#aaa}
+    /* ── CANVAS CONTAINERS — fixed height is the key ── */
+    .canvas-box{position:relative;width:100%;height:260px}
+    .canvas-box.tall{height:300px}
+    .canvas-box.short{height:120px}
+    .canvas-box canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
 
-    /* Mobile */
-    @media(max-width:900px){.chart-grid{grid-template-columns:1fr}}
+    /* ── DONUT LAYOUT ── */
+    .donut-layout{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+    .donut-box{position:relative;flex:0 0 220px;height:220px}
+    .donut-box canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+    .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+    .donut-center .dc-n{font-size:40px;font-weight:bold;color:#111;line-height:1}
+    .donut-center .dc-l{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+    .legend-list{flex:1;display:flex;flex-direction:column;gap:10px;min-width:140px}
+    .leg{display:flex;align-items:center;gap:10px;background:#f8f8f8;border-radius:8px;padding:10px 14px}
+    .leg-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+    .leg-name{font-size:13px;color:#555;flex:1}
+    .leg-val{font-size:18px;font-weight:bold;color:#111}
+    .leg-pct{font-size:11px;color:#aaa;margin-left:4px}
+
+    /* ── MOBILE ── */
+    @media(max-width:960px){.chart-row{grid-template-columns:1fr}}
     @media(max-width:768px){
-      .sidebar{display:none}.main{margin-left:0}.content{padding:16px}
-      .kpi-num{font-size:30px}
+      .sidebar{display:none}.main{margin-left:0}.content{padding:14px}
+      .kpi-num{font-size:28px}.donut-box{flex:0 0 180px;height:180px}
     }
   </style>
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
   <div class="s-logo">Great <span>Properties</span> GA<small>Admin Dashboard</small></div>
   <nav>
@@ -163,11 +152,12 @@ $contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
     </a>
   </nav>
   <div class="install-wrap">
-    <button class="btn-pwa" id="btn-pwa" style="display:none">&#11015; Install App</button>
+    <button class="btn-pwa" id="btn-pwa" style="display:none">&#11015; Install App on Phone</button>
   </div>
   <div class="s-foot">Logged in as <strong style="color:#fff">admin</strong><br><a href="logout.php">&#8594; Log out</a></div>
 </div>
 
+<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <h1>&#128200; Charts &amp; Analytics</h1>
@@ -180,82 +170,78 @@ $contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
 
     <!-- KPI CARDS -->
     <div class="kpi-grid">
-      <div class="kpi red">
-        <div class="kpi-num"><?=$total?></div>
-        <div class="kpi-label">Total Leads</div>
-      </div>
-      <div class="kpi yellow">
-        <div class="kpi-num"><?=$cnt['New']?></div>
-        <div class="kpi-label">New / Pending</div>
-      </div>
-      <div class="kpi blue">
-        <div class="kpi-num"><?=$cnt['Contacted']?></div>
-        <div class="kpi-label">Contacted</div>
-      </div>
-      <div class="kpi green">
-        <div class="kpi-num"><?=$cnt['Closed']?></div>
-        <div class="kpi-label">Closed / Won</div>
-      </div>
-      <div class="kpi gray">
-        <div class="kpi-num"><?=$cnt['Lost']?></div>
-        <div class="kpi-label">Lost</div>
-      </div>
-      <div class="kpi green">
-        <div class="kpi-pct"><?=$closedPct?>%</div>
-        <div class="kpi-label">Close Rate</div>
-      </div>
+      <div class="kpi red"><div class="kpi-num"><?=$total?></div><div class="kpi-label">Total Leads</div></div>
+      <div class="kpi yellow"><div class="kpi-num"><?=$cnt['New']?></div><div class="kpi-label">New / Pending</div></div>
+      <div class="kpi blue"><div class="kpi-num"><?=$cnt['Contacted']?></div><div class="kpi-label">Contacted</div></div>
+      <div class="kpi green"><div class="kpi-num"><?=$cnt['Closed']?></div><div class="kpi-label">Closed / Won</div></div>
+      <div class="kpi gray"><div class="kpi-num"><?=$cnt['Lost']?></div><div class="kpi-label">Lost</div></div>
+      <div class="kpi green"><div class="kpi-pct"><?=$closedPct?>%</div><div class="kpi-label">Close Rate</div></div>
     </div>
 
-    <!-- CHARTS ROW 1 -->
-    <div class="chart-grid">
+    <!-- ROW 1: Donut + Bar 7 days -->
+    <div class="chart-row">
 
-      <!-- Donut -->
       <div class="chart-card">
-        <h2><span>&#127383;</span> Lead Status Breakdown</h2>
-        <div class="donut-wrap-big">
-          <canvas id="donutBig"></canvas>
-          <div class="donut-center-big">
-            <div class="dc-num"><?=$total?></div>
-            <div class="dc-lbl">Total</div>
+        <h2><em>&#127383;</em> Lead Status Breakdown</h2>
+        <div class="donut-layout">
+          <div class="donut-box">
+            <canvas id="donutBig"></canvas>
+            <div class="donut-center">
+              <div class="dc-n"><?=$total?></div>
+              <div class="dc-l">Total</div>
+            </div>
+          </div>
+          <div class="legend-list">
+            <?php
+            $legData=[['New','#f59e0b'],['Contacted','#3b82f6'],['Closed','#22c55e'],['Lost','#6b7280']];
+            foreach($legData as [$name,$color]):
+              $pct = $total>0 ? round($cnt[$name]/$total*100) : 0;
+            ?>
+            <div class="leg">
+              <div class="leg-dot" style="background:<?=$color?>"></div>
+              <span class="leg-name"><?=$name?></span>
+              <span class="leg-val"><?=$cnt[$name]?></span>
+              <span class="leg-pct"><?=$pct?>%</span>
+            </div>
+            <?php endforeach; ?>
           </div>
         </div>
-        <div class="legend-grid">
-          <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div><div class="leg-info"><div class="leg-name">New</div><div class="leg-count"><?=$cnt['New']?></div><div class="leg-pct"><?=$total>0?round($cnt['New']/$total*100).'%':'0%'?> of total</div></div></div>
-          <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div><div class="leg-info"><div class="leg-name">Contacted</div><div class="leg-count"><?=$cnt['Contacted']?></div><div class="leg-pct"><?=$total>0?round($cnt['Contacted']/$total*100).'%':'0%'?> of total</div></div></div>
-          <div class="leg"><div class="leg-dot" style="background:#22c55e"></div><div class="leg-info"><div class="leg-name">Closed</div><div class="leg-count"><?=$cnt['Closed']?></div><div class="leg-pct"><?=$total>0?round($cnt['Closed']/$total*100).'%':'0%'?> of total</div></div></div>
-          <div class="leg"><div class="leg-dot" style="background:#6b7280"></div><div class="leg-info"><div class="leg-name">Lost</div><div class="leg-count"><?=$cnt['Lost']?></div><div class="leg-pct"><?=$total>0?round($cnt['Lost']/$total*100).'%':'0%'?> of total</div></div></div>
+      </div>
+
+      <div class="chart-card">
+        <h2><em>&#128337;</em> Leads &mdash; Last 7 Days</h2>
+        <div class="canvas-box tall">
+          <canvas id="bar7"></canvas>
         </div>
       </div>
 
-      <!-- Bar last 7 days -->
+    </div>
+
+    <!-- ROW 2: Line 30d + Monthly -->
+    <div class="chart-row">
+
       <div class="chart-card">
-        <h2><span>&#128337;</span> Leads — Last 7 Days</h2>
-        <div class="chart-wrap"><canvas id="bar7"></canvas></div>
+        <h2><em>&#128200;</em> Leads &mdash; Last 30 Days</h2>
+        <div class="canvas-box">
+          <canvas id="line30"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2><em>&#128197;</em> Monthly Overview (6 months)</h2>
+        <div class="canvas-box">
+          <canvas id="barMonthly"></canvas>
+        </div>
       </div>
 
     </div>
 
-    <!-- CHARTS ROW 2 -->
-    <div class="chart-grid">
-
-      <!-- Line last 30 days -->
-      <div class="chart-card">
-        <h2><span>&#128200;</span> Leads — Last 30 Days</h2>
-        <div class="chart-wrap"><canvas id="line30"></canvas></div>
-      </div>
-
-      <!-- Monthly bar -->
-      <div class="chart-card">
-        <h2><span>&#128197;</span> Monthly Overview (6 months)</h2>
-        <div class="chart-wrap"><canvas id="barMonthly"></canvas></div>
-      </div>
-
-    </div>
-
-    <!-- Horizontal bar by status -->
+    <!-- ROW 3: Horizontal status -->
     <div class="chart-card full" style="margin-bottom:20px">
-      <h2><span>&#127942;</span> Status Comparison</h2>
-      <div class="chart-wrap"><canvas id="hbar" height="80"></canvas></div>
+      <h2><em>&#127942;</em> Status Comparison</h2>
+      <div class="canvas-box short">
+        <canvas id="hbar"></canvas>
+      </div>
     </div>
 
   </div>
@@ -264,64 +250,118 @@ $contactedPct = $total > 0 ? round($cnt['Contacted']/$total*100,1) : 0;
 <script>
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-// PWA
-let dp;
-const pb=document.getElementById('btn-pwa');
+// PWA install
+let dp; const pb=document.getElementById('btn-pwa');
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;pb.style.display='flex';});
-pb.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;dp=null;if(outcome==='accepted'){pb.textContent='\u2705 Installed!';pb.style.display='flex';}else pb.style.display='none';});
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-const isSafari=/safari/i.test(navigator.userAgent)&&!/chrome/i.test(navigator.userAgent);
-const isStandalone=window.matchMedia('(display-mode: standalone)').matches;
-if(isIOS&&isSafari&&!isStandalone){pb.style.display='flex';pb.textContent='\ud83d\udcf1 Install on iPhone';pb.addEventListener('click',()=>alert('1. Tap \u2191 Share\n2. Add to Home Screen\n3. Tap Add'),{once:true});}
+pb.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;dp=null;outcome==='accepted'?(pb.textContent='\u2705 Installed!',pb.style.display='flex'):pb.style.display='none';});
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),isSafari=/safari/i.test(navigator.userAgent)&&!/chrome/i.test(navigator.userAgent),isSA=window.matchMedia('(display-mode:standalone)').matches;
+if(isIOS&&isSafari&&!isSA){pb.style.display='flex';pb.textContent='\ud83d\udcf1 Install on iPhone';pb.addEventListener('click',()=>alert('1. Tap \u2191 Share\n2. Add to Home Screen\n3. Tap Add'),{once:true});}
 
 const COLORS=['#f59e0b','#3b82f6','#22c55e','#6b7280'];
 const STATUS=['New','Contacted','Closed','Lost'];
 const VALS=[<?=$cnt['New']?>,<?=$cnt['Contacted']?>,<?=$cnt['Closed']?>,<?=$cnt['Lost']?>];
+const TOTAL=<?=$totalJS?>;
 
-// Donut big
+const CHART_OPTS = {
+  maintainAspectRatio: false,
+  responsive: true,
+};
+
+// 1. DONUT
 new Chart(document.getElementById('donutBig'),{
   type:'doughnut',
-  data:{labels:STATUS,datasets:[{data:VALS,backgroundColor:COLORS,borderWidth:0,hoverOffset:8}]},
-  options:{cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} (${<?=$total?>>0?'Math.round(ctx.parsed/'+<?=$total?>+'*100)':0}+'%)'}}},animation:{duration:900}}
+  data:{labels:STATUS,datasets:[{data:VALS,backgroundColor:COLORS,borderWidth:2,borderColor:'#fff',hoverOffset:10}]},
+  options:{
+    ...CHART_OPTS,
+    cutout:'62%',
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>{
+        const pct=TOTAL>0?Math.round(ctx.parsed/TOTAL*100):0;
+        return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+      }}}
+    },
+    animation:{duration:900}
+  }
 });
 
-// Bar 7 days
-const b7data=<?=json_encode(array_values($daily7))?>;
+// 2. BAR 7 days
+const b7d=<?=json_encode(array_values($daily7))?>;
 new Chart(document.getElementById('bar7'),{
   type:'bar',
-  data:{labels:<?=json_encode(array_keys($daily7))?>,datasets:[{data:b7data,backgroundColor:b7data.map(v=>v>0?'#cc0000':'#e5e7eb'),borderRadius:6,borderSkipped:false}]},
-  options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}`}}},scales:{x:{grid:{display:false},ticks:{color:'#888'}},y:{beginAtZero:true,ticks:{stepSize:1,color:'#888',precision:0},grid:{color:'#f5f5f5'}}},animation:{duration:700}}
-});
-
-// Line 30 days
-const l30data=<?=json_encode(array_values($daily30))?>;
-new Chart(document.getElementById('line30'),{
-  type:'line',
-  data:{labels:<?=json_encode(array_keys($daily30))?>,datasets:[{data:l30data,borderColor:'#cc0000',backgroundColor:'rgba(204,0,0,.08)',tension:.4,fill:true,pointRadius:l30data.map(v=>v>0?4:0),pointBackgroundColor:'#cc0000'}]},
-  options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}`}}},scales:{x:{grid:{display:false},ticks:{color:'#888',maxTicksLimit:8}},y:{beginAtZero:true,ticks:{stepSize:1,color:'#888',precision:0},grid:{color:'#f5f5f5'}}},animation:{duration:800}}
-});
-
-// Monthly bar
-const mData=<?=json_encode(array_values($monthly))?>;
-new Chart(document.getElementById('barMonthly'),{
-  type:'bar',
-  data:{labels:<?=json_encode(array_keys($monthly))?>,datasets:[{data:mData,backgroundColor:mData.map((v,i)=>i===mData.length-1?'#cc0000':'#3b82f6'),borderRadius:6,borderSkipped:false}]},
-  options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} leads`}}},scales:{x:{grid:{display:false},ticks:{color:'#888'}},y:{beginAtZero:true,ticks:{stepSize:1,color:'#888',precision:0},grid:{color:'#f5f5f5'}}},animation:{duration:700}}
-});
-
-// Horizontal status bar
-new Chart(document.getElementById('hbar'),{
-  type:'bar',
   data:{
-    labels:STATUS,
-    datasets:[{data:VALS,backgroundColor:COLORS,borderRadius:6,borderSkipped:false}]
+    labels:<?=json_encode(array_keys($daily7))?>,
+    datasets:[{data:b7d,backgroundColor:b7d.map(v=>v>0?'#cc0000':'#e5e7eb'),borderRadius:6,borderSkipped:false}]
   },
   options:{
+    ...CHART_OPTS,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}` }}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#888',font:{size:11}}},
+      y:{beginAtZero:true,ticks:{stepSize:1,precision:0,color:'#888'},grid:{color:'#f0f0f0'}}
+    },
+    animation:{duration:700}
+  }
+});
+
+// 3. LINE 30 days
+const l30=<?=json_encode(array_values($daily30))?>;
+new Chart(document.getElementById('line30'),{
+  type:'line',
+  data:{
+    labels:<?=json_encode(array_keys($daily30))?>,
+    datasets:[{
+      data:l30,
+      borderColor:'#cc0000',
+      backgroundColor:'rgba(204,0,0,0.08)',
+      tension:.4,fill:true,
+      pointRadius:l30.map(v=>v>0?4:0),
+      pointBackgroundColor:'#cc0000',
+      pointBorderColor:'#fff',
+      pointBorderWidth:2
+    }]
+  },
+  options:{
+    ...CHART_OPTS,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#888',maxTicksLimit:8,font:{size:10}}},
+      y:{beginAtZero:true,ticks:{stepSize:1,precision:0,color:'#888'},grid:{color:'#f0f0f0'}}
+    },
+    animation:{duration:800}
+  }
+});
+
+// 4. MONTHLY BAR
+const mD=<?=json_encode(array_values($monthly))?>;
+new Chart(document.getElementById('barMonthly'),{
+  type:'bar',
+  data:{
+    labels:<?=json_encode(array_keys($monthly))?>,
+    datasets:[{data:mD,backgroundColor:mD.map((v,i)=>i===mD.length-1?'#cc0000':'#93c5fd'),borderRadius:6,borderSkipped:false}]
+  },
+  options:{
+    ...CHART_OPTS,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} leads`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#888',font:{size:11}}},
+      y:{beginAtZero:true,ticks:{stepSize:1,precision:0,color:'#888'},grid:{color:'#f0f0f0'}}
+    },
+    animation:{duration:700}
+  }
+});
+
+// 5. HORIZONTAL STATUS BAR
+new Chart(document.getElementById('hbar'),{
+  type:'bar',
+  data:{labels:STATUS,datasets:[{data:VALS,backgroundColor:COLORS,borderRadius:6,borderSkipped:false}]},
+  options:{
+    ...CHART_OPTS,
     indexAxis:'y',
     plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x} leads`}}},
     scales:{
-      x:{beginAtZero:true,ticks:{stepSize:1,color:'#888',precision:0},grid:{color:'#f5f5f5'}},
-      y:{grid:{display:false},ticks:{color:'#444',font:{size:14,weight:'bold'}}}
+      x:{beginAtZero:true,ticks:{stepSize:1,precision:0,color:'#888'},grid:{color:'#f0f0f0'}},
+      y:{grid:{display:false},ticks:{color:'#333',font:{size:13,weight:'bold'}}}
     },
     animation:{duration:800}
   }
