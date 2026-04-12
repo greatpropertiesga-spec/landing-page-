@@ -31,17 +31,14 @@ foreach ($all as $r) {
 }
 $new_count = $cnt['New'];
 
-// Leads per day last 7 days for bar chart
+// Daily chart last 7 days
 $daily = [];
-for ($i=6; $i>=0; $i--) {
-    $d = date('Y-m-d', strtotime("-$i days"));
-    $label = date('M j', strtotime("-$i days"));
-    $daily[$label] = 0;
+for ($i=6;$i>=0;$i--) {
+    $daily[date('M j',strtotime("-{$i} days"))] = 0;
 }
 foreach ($all as $r) {
-    $d = substr($r['created_at'],0,10);
-    $label = date('M j', strtotime($d));
-    if (isset($daily[$label])) $daily[$label]++;
+    $lbl = date('M j', strtotime(substr($r['created_at'],0,10)));
+    if (isset($daily[$lbl])) $daily[$lbl]++;
 }
 
 $search = trim($_GET['q']??''); $filter = trim($_GET['status']??'');
@@ -64,17 +61,21 @@ $count = count($leads);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Leads Dashboard | Great Properties GA</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#cc0000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GP Admin">
+  <link rel="apple-touch-icon" href="/icon-512.svg">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222}
-
-    /* ── SIDEBAR ── */
-    .sidebar{
-      position:fixed;top:0;left:0;bottom:0;width:240px;
-      background:#111;display:flex;flex-direction:column;z-index:100;
-      overflow-y:auto;
-    }
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:#111;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
     .s-logo{padding:22px 20px;font-size:15px;font-weight:bold;border-bottom:1px solid #1e1e1e;color:#fff;flex-shrink:0}
     .s-logo span{color:#ffd700}
     .s-logo small{display:block;color:#555;font-size:11px;font-weight:normal;margin-top:2px}
@@ -85,39 +86,25 @@ $count = count($leads);
     .nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;font-size:11px;font-weight:bold;background:#2a2a2a;color:#888;transition:all .15s}
     .nav-a:hover .nav-badge,.nav-a.on .nav-badge{background:#cc0000;color:#fff}
     .nav-badge.hot{background:#cc0000;color:#fff}
-
-    /* ── CHART SECTION ── */
-    .chart-section{
-      flex-shrink:0;
-      border-top:1px solid #1e1e1e;
-      padding:20px 16px 16px;
-      background:#0d0d0d;
-    }
-    .chart-title{
-      font-size:11px;text-transform:uppercase;letter-spacing:1px;
-      color:#555;margin-bottom:14px;text-align:center;font-weight:bold;
-    }
+    .chart-section{flex-shrink:0;border-top:1px solid #1e1e1e;padding:20px 16px 16px;background:#0d0d0d}
+    .chart-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:14px;text-align:center;font-weight:bold}
     .donut-wrap{position:relative;width:140px;margin:0 auto 14px}
-    .donut-center{
-      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      text-align:center;pointer-events:none;
-    }
+    .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
     .donut-center .dc-num{font-size:22px;font-weight:bold;color:#fff;line-height:1}
     .donut-center .dc-lbl{font-size:9px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
     .chart-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:16px}
     .leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#888}
     .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
     .leg-val{margin-left:auto;color:#fff;font-weight:bold;font-size:12px}
-
-    /* bar chart */
     .bar-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:10px;text-align:center;font-weight:bold}
     .bar-wrap{width:100%}
-
-    /* ── FOOTER ── */
+    /* Install button in sidebar */
+    .install-wrap{flex-shrink:0;padding:12px 16px;border-top:1px solid #1e1e1e;background:#0d0d0d}
+    .btn-pwa{width:100%;background:linear-gradient(135deg,#cc0000,#990000);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+    .btn-pwa:hover{opacity:.88}
+    .btn-pwa.installed{background:#1a1a1a;color:#555;cursor:default}
     .s-foot{padding:14px 20px;border-top:1px solid #1e1e1e;font-size:12px;color:#555;flex-shrink:0}
     .s-foot a{color:#777;text-decoration:none}.s-foot a:hover{color:#fff}
-
-    /* ── MAIN ── */
     .main{margin-left:240px;min-height:100vh}
     .topbar{background:#fff;padding:15px 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
     .topbar h1{font-size:19px}
@@ -162,41 +149,32 @@ $count = count($leads);
 </head>
 <body>
 
-<!-- ══ SIDEBAR ══ -->
 <div class="sidebar">
   <div class="s-logo">Great <span>Properties</span> GA<small>Admin Dashboard</small></div>
   <nav>
     <a class="nav-a <?=!$filter&&!$search?'on':''?>" href="admin.php">
-      <span>&#128203;</span>
-      <span class="nav-label">All Leads</span>
+      <span>&#128203;</span><span class="nav-label">All Leads</span>
       <span class="nav-badge <?=$total>0?'hot':''?>"><?=$total?></span>
     </a>
     <a class="nav-a <?=$filter==='New'?'on':''?>" href="admin.php?status=New">
-      <span>&#127381;</span>
-      <span class="nav-label">New</span>
+      <span>&#127381;</span><span class="nav-label">New</span>
       <span class="nav-badge <?=$cnt['New']>0?'hot':''?>"><?=$cnt['New']?></span>
     </a>
     <a class="nav-a <?=$filter==='Contacted'?'on':''?>" href="admin.php?status=Contacted">
-      <span>&#128222;</span>
-      <span class="nav-label">Contacted</span>
+      <span>&#128222;</span><span class="nav-label">Contacted</span>
       <span class="nav-badge <?=$cnt['Contacted']>0?'hot':''?>"><?=$cnt['Contacted']?></span>
     </a>
     <a class="nav-a <?=$filter==='Closed'?'on':''?>" href="admin.php?status=Closed">
-      <span>&#9989;</span>
-      <span class="nav-label">Closed</span>
+      <span>&#9989;</span><span class="nav-label">Closed</span>
       <span class="nav-badge <?=$cnt['Closed']>0?'hot':''?>"><?=$cnt['Closed']?></span>
     </a>
     <a class="nav-a <?=$filter==='Lost'?'on':''?>" href="admin.php?status=Lost">
-      <span>&#128683;</span>
-      <span class="nav-label">Lost</span>
+      <span>&#128683;</span><span class="nav-label">Lost</span>
       <span class="nav-badge <?=$cnt['Lost']>0?'hot':''?>"><?=$cnt['Lost']?></span>
     </a>
   </nav>
 
-  <!-- ══ CHART SECTION ══ -->
   <div class="chart-section">
-
-    <!-- Donut chart -->
     <div class="chart-title">&#128200; Lead Overview</div>
     <div class="donut-wrap">
       <canvas id="donutChart" width="140" height="140"></canvas>
@@ -211,13 +189,15 @@ $count = count($leads);
       <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Closed<span class="leg-val"><?=$cnt['Closed']?></span></div>
       <div class="leg-item"><div class="leg-dot" style="background:#6b7280"></div>Lost<span class="leg-val"><?=$cnt['Lost']?></span></div>
     </div>
-
-    <!-- Bar chart last 7 days -->
     <div class="bar-title">&#128337; Last 7 Days</div>
-    <div class="bar-wrap">
-      <canvas id="barChart" height="110"></canvas>
-    </div>
+    <div class="bar-wrap"><canvas id="barChart" height="110"></canvas></div>
+  </div>
 
+  <!-- Install App Button -->
+  <div class="install-wrap">
+    <button class="btn-pwa" id="btn-pwa" style="display:none">
+      &#11015; Install App on Phone
+    </button>
   </div>
 
   <div class="s-foot">
@@ -226,7 +206,6 @@ $count = count($leads);
   </div>
 </div>
 
-<!-- ══ MAIN ══ -->
 <div class="main">
   <div class="topbar">
     <h1>&#128203; Leads Dashboard</h1>
@@ -280,7 +259,7 @@ $count = count($leads);
           <tr>
             <td style="color:#ccc;font-size:12px">#<?=(int)$row['id']?></td>
             <td class="tn"><?=htmlspecialchars($row['name']??'')?></td>
-            <td class="tp"><a href="tel:<?=htmlspecialchars($row['phone']??'')?>"><?=htmlspecialchars($row['phone']??'')?></a></td>
+            <td class="tp"><a href="tel:<?=htmlspecialchars($row['phone']??'')?>">  <?=htmlspecialchars($row['phone']??'')?></a></td>
             <td><?=htmlspecialchars($row['email']??'')?></td>
             <td class="ta" title="<?=htmlspecialchars($row['address']??'')?>"><?=htmlspecialchars($row['address']??'')?></td>
             <td>
@@ -312,65 +291,85 @@ $count = count($leads);
 </div>
 
 <script>
-// ── DONUT CHART ──
-const donutData = {
-  labels: ['New','Contacted','Closed','Lost'],
-  datasets:[{
-    data: [<?=$cnt['New']?>,<?=$cnt['Contacted']?>,<?=$cnt['Closed']?>,<?=$cnt['Lost']?>],
-    backgroundColor: ['#f59e0b','#3b82f6','#22c55e','#6b7280'],
-    borderWidth: 0,
-    hoverOffset: 6,
-  }]
-};
-new Chart(document.getElementById('donutChart'), {
-  type: 'doughnut',
-  data: donutData,
-  options: {
-    cutout: '68%',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ` ${ctx.label}: ${ctx.parsed} leads`
-        }
-      }
-    },
-    animation: { animateRotate: true, duration: 800 }
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+
+// ── PWA Install ──
+let deferredPrompt;
+const pwaBtn = document.getElementById('btn-pwa');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  pwaBtn.style.display = 'flex';
+});
+
+pwaBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  if (outcome === 'accepted') {
+    pwaBtn.textContent = '✅ App Installed!';
+    pwaBtn.classList.add('installed');
+    pwaBtn.style.display = 'flex';
+  } else {
+    pwaBtn.style.display = 'none';
   }
 });
 
-// ── BAR CHART last 7 days ──
-const barLabels = <?=json_encode(array_keys($daily))?>;
-const barData   = <?=json_encode(array_values($daily))?>;
-new Chart(document.getElementById('barChart'), {
-  type: 'bar',
+window.addEventListener('appinstalled', () => {
+  pwaBtn.textContent = '✅ App Installed!';
+  pwaBtn.classList.add('installed');
+  pwaBtn.style.display = 'flex';
+});
+
+// iOS Safari
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+if (isIOS && isSafari && !isStandalone) {
+  pwaBtn.style.display = 'flex';
+  pwaBtn.textContent = '📱 Install on iPhone';
+  pwaBtn.addEventListener('click', () => {
+    alert('To install on iPhone:\n\n1. Tap ↑ Share at bottom of Safari\n2. Scroll & tap "Add to Home Screen"\n3. Tap "Add"');
+  }, { once: true });
+}
+
+// ── Charts ──
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
   data: {
-    labels: barLabels,
+    labels: ['New','Contacted','Closed','Lost'],
     datasets:[{
-      data: barData,
-      backgroundColor: barData.map(v => v > 0 ? '#cc0000' : '#2a2a2a'),
-      borderRadius: 4,
-      borderSkipped: false,
+      data: [<?=$cnt['New']?>,<?=$cnt['Contacted']?>,<?=$cnt['Closed']?>,<?=$cnt['Lost']?>],
+      backgroundColor: ['#f59e0b','#3b82f6','#22c55e','#6b7280'],
+      borderWidth: 0, hoverOffset: 6
     }]
   },
   options: {
-    plugins: { legend: { display: false }, tooltip: {
-      callbacks: { label: ctx => ` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}` }
-    }},
-    scales: {
-      x: {
-        ticks: { color:'#555', font:{ size:9 } },
-        grid: { display: false },
-        border: { display: false }
-      },
-      y: {
-        ticks: { color:'#555', font:{ size:9 }, stepSize:1, precision:0 },
-        grid: { color:'#1a1a1a' },
-        border: { display: false },
-        beginAtZero: true
-      }
+    cutout:'68%',
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed}` }}},
+    animation:{duration:800}
+  }
+});
+
+const barData = <?=json_encode(array_values($daily))?>;
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: <?=json_encode(array_keys($daily))?>,
+    datasets:[{ data: barData, backgroundColor: barData.map(v=>v>0?'#cc0000':'#2a2a2a'), borderRadius:4, borderSkipped:false }]
+  },
+  options: {
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label: ctx=>` ${ctx.parsed.y} lead${ctx.parsed.y!==1?'s':''}` }}},
+    scales:{
+      x:{ticks:{color:'#555',font:{size:9}},grid:{display:false},border:{display:false}},
+      y:{ticks:{color:'#555',font:{size:9},stepSize:1,precision:0},grid:{color:'#1a1a1a'},border:{display:false},beginAtZero:true}
     },
-    animation: { duration: 600 }
+    animation:{duration:600}
   }
 });
 </script>

@@ -1,0 +1,15 @@
+{
+  "name": "Great Properties GA",
+  "short_name": "GP Admin",
+  "description": "Admin dashboard for Great Properties GA leads",
+  "start_url": "/login.php",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#cc0000",
+  "background_color": "#111111",
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

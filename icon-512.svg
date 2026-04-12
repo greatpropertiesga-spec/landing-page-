@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#cc0000"/>
+  <g fill="white">
+    <!-- House roof -->
+    <polygon points="256,80 54,254 108,254 108,432 218,432 218,314 294,314 294,432 404,432 404,254 458,254" />
+    <!-- Door -->
+    <rect x="218" y="314" width="76" height="118" fill="#cc0000" rx="8"/>
+    <!-- Windows -->
+    <rect x="140" y="278" width="60" height="60" rx="6" fill="#cc0000"/>
+    <rect x="312" y="278" width="60" height="60" rx="6" fill="#cc0000"/>
+    <!-- Window panes -->
+    <line x1="170" y1="278" x2="170" y2="338" stroke="white" stroke-width="4"/>
+    <line x1="140" y1="308" x2="200" y2="308" stroke="white" stroke-width="4"/>
+    <line x1="342" y1="278" x2="342" y2="338" stroke="white" stroke-width="4"/>
+    <line x1="312" y1="308" x2="372" y2="308" stroke="white" stroke-width="4"/>
+  </g>
+  <!-- GP letters subtle -->
+  <text x="256" y="490" font-family="Arial" font-size="48" font-weight="bold" fill="rgba(255,255,255,0.3)" text-anchor="middle">GP</text>
+</svg>
